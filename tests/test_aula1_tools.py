@@ -5,6 +5,7 @@ inclusive o caminho de ERRO — é ele que permite a autocorreção do agente.
 """
 
 import json
+from datetime import datetime, timedelta, timezone
 
 from opspilot import tools
 
@@ -31,6 +32,30 @@ def test_ler_logs_limita_linhas():
     assert len(saida.splitlines()) == 3
 
 
+def test_listar_deploys_varre_logs_e_ordena_por_horario(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools, "DIR_LOGS", tmp_path)
+    agora = datetime.now(timezone.utc)
+    mais_antigo = (agora - timedelta(hours=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    mais_novo = (agora - timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    fora_da_janela = (agora - timedelta(hours=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    (tmp_path / "auth.log").write_text(f"{mais_novo} INFO deploy auth v2\n", encoding="utf-8")
+    (tmp_path / "checkout.log").write_text(
+        f"{fora_da_janela} INFO deploy antigo\n{mais_antigo} INFO deploy checkout v1\n",
+        encoding="utf-8",
+    )
+
+    saida = tools.listar_deploys.invoke({"horas": 6})
+
+    assert saida.splitlines() == [
+        f"{mais_antigo} INFO deploy checkout v1",
+        f"{mais_novo} INFO deploy auth v2",
+    ]
+
+
+def test_listar_deploys_rejeita_janela_nao_positiva():
+    assert tools.listar_deploys.invoke({"horas": 0}).startswith("ERRO:")
+
+
 def test_buscar_runbook_encontra_pool():
     saida = tools.buscar_runbook.invoke({"consulta": "pool de conexões esgotado"})
     assert "banco-conexoes-esgotadas.md" in saida
@@ -50,3 +75,5 @@ def test_schema_da_ferramenta_tem_descricao():
     schema = tools.consultar_metricas.args
     assert "servico" in schema
     assert "métricas" in tools.consultar_metricas.description.lower()
+    assert "horas" in tools.listar_deploys.args
+    assert tools.listar_deploys in tools.TODAS_FERRAMENTAS
