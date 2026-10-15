@@ -47,10 +47,7 @@ PROCESSO = (
     "5. Separe explicitamente causa raiz de sintomas/efeitos colaterais."
 )
 
-# ┌─ LACUNA [A1-L4] Defina o FORMATO de saída do agente
-# │  Dica: Um formato fixo facilita ler, comparar e AVALIAR respostas. Peça seções em markdown: Causa raiz, Evidências (lista com métrica ou linha de log), Sintomas vs. causa, Ação recomendada, Severidade (SEV1/2/3).
-# │  Copilot Chat: "Escreva a constante FORMATO como uma string que pede uma resposta em markdown com as seções Causa raiz, Evidências, Sintomas vs. causa, Ação recomendada e Severidade"
-# └─ Troque cada ___ abaixo. Gabarito: `make gabarito-aula AULA=1`
+# [A1-L4] ✔ Defina o FORMATO de saída do agente
 FORMATO = (
     "Responda em português, em markdown, com estas seções:\n"
     "**Causa raiz:** uma frase.\n"
